@@ -59,8 +59,19 @@ static Clr *scheme[SchemeLast];
 
 #include "config.h"
 
+static int chrcmp(char a, char b)
+{
+	return a == b;
+}
+
+static int cichrcmp(char a, char b)
+{
+	return tolower(a) == tolower(b);
+}
+
 static int (*fstrncmp)(const char *, const char *, size_t) = strncmp;
 static char *(*fstrstr)(const char *, const char *) = strstr;
+static int (*fchrcmp)(char, char) = chrcmp;
 
 static void
 appenditem(struct item *item, struct item **list, struct item **last)
@@ -131,7 +142,7 @@ drawhighlights(struct item *item, int x, int y, int maxw)
 	                   ? SchemeSelHighlight
 	                   : SchemeNormHighlight]);
 	for (i = 0, highlight = item->text; *highlight && text[i];) {
-		if (*highlight == text[i]) {
+		if (fchrcmp(*highlight, text[i])) {
 			/* get indentation */
 			c = *highlight;
 			*highlight = '\0';
@@ -857,6 +868,7 @@ main(int argc, char *argv[])
 		else if (!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
 			fstrncmp = strncasecmp;
 			fstrstr = cistrstr;
+			fchrcmp = cichrcmp;
 		} else if (i + 1 == argc)
 			usage();
 		/* these options take one argument */
